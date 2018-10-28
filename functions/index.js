@@ -318,12 +318,16 @@ exports.transferMoney = functions.https.onRequest(async (request, response) => {
 async function transferMoneyTo(transferee, transferor, amount) {
     let user_doc = await admin.firestore().collection('users').doc('boc1').get()
 
+    console.log('starting')
     let payload = await signPayment(transferee, transferor, amount)
 
+    console.log('payload', payload)
     let paymentId = await createPayment(payload, user_doc.data().access_token, user_doc.data().subscriptionId)
 
+    console.log('paymentId', paymentId)
     let refNumber = await approvePayment(paymentId, user_doc.data().access_token, user_doc.data().subscriptionId)
 
+    console.log('ref', refNumber)
     return refNumber
 }
 async function signPayment(transferee, transferor, amount) {
@@ -533,6 +537,10 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
         agent.add('Token refreshed!')
     }
 
+    async function payFor(agent) {
+        agent.add('Your payment has been processed successfully!')
+    }
+
     async function goOut(agent) {
         agent.add('You should not spend more than 500 or less than 200')
     }
@@ -544,6 +552,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
     intentMap.set('Default Fallback Intent', fallback);
     intentMap.set('Login', login)
     intentMap.set('RefreshToken', refreshToken)
+    intentMap.set('Pay', payFor)
 
     agent.handleRequest(intentMap);
 });
